@@ -1,4 +1,4 @@
-# SwarmMap Docker Build - Step 2: OpenCV 4.2.0 with CUDA
+# SwarmMap Docker Build - Step 2: OpenCV 4.2.0 with CUDA (NO CONTRIB - for compatibility)
 FROM nvidia/cuda:11.8.0-devel-ubuntu20.04
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -55,30 +55,22 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /root
 
-# Download OpenCV 4.2.0 and opencv_contrib
+# Download OpenCV 4.2.0 (WITHOUT opencv_contrib to avoid nppicom issues)
 RUN echo "Downloading OpenCV 4.2.0..." && \
     wget -q https://github.com/opencv/opencv/archive/4.2.0.zip -O opencv.zip && \
-    wget -q https://github.com/opencv/opencv_contrib/archive/4.2.0.zip -O opencv_contrib.zip && \
     unzip -q opencv.zip && \
-    unzip -q opencv_contrib.zip && \
-    rm opencv.zip opencv_contrib.zip
+    rm opencv.zip
 
 # Create build directory
 RUN mkdir -p /root/opencv-4.2.0/build
 
 WORKDIR /root/opencv-4.2.0/build
 
-# Configure OpenCV with CUDA support
-# Key flags:
-# - WITH_CUDA=ON: Enable CUDA
-# - CUDA_ARCH_BIN=8.6: RTX A6000 compute capability
-# - WITH_CUDNN=OFF: We don't need cuDNN for ORB-SLAM2
-# - CUDA_FAST_MATH=ON: Enable fast math for better performance
-# - WITH_CUBLAS=ON: Use CUDA BLAS
-# - BUILD_opencv_cudacodec=OFF: Disable modules requiring nppicom (CUDA 11.x compatibility)
+# Configure OpenCV with CUDA support (NO CONTRIB)
+# This avoids the nppicom library issue with CUDA 11.x
+# SwarmMap only needs core OpenCV + CUDA for ORB extraction
 RUN cmake -D CMAKE_BUILD_TYPE=RELEASE \
     -D CMAKE_INSTALL_PREFIX=/usr/local \
-    -D OPENCV_EXTRA_MODULES_PATH=/root/opencv_contrib-4.2.0/modules \
     -D WITH_CUDA=ON \
     -D CUDA_ARCH_BIN=8.6 \
     -D CUDA_ARCH_PTX="" \
@@ -96,13 +88,11 @@ RUN cmake -D CMAKE_BUILD_TYPE=RELEASE \
     -D BUILD_PERF_TESTS=OFF \
     -D BUILD_EXAMPLES=OFF \
     -D OPENCV_GENERATE_PKGCONFIG=ON \
-    -D BUILD_opencv_cudacodec=OFF \
-    -D BUILD_opencv_world=OFF \
     ..
 
-# Build OpenCV (this will take a while - 20-40 minutes depending on CPU)
+# Build OpenCV (this will take 15-30 minutes)
 # Using 8 parallel jobs to speed up compilation
-RUN echo "Building OpenCV 4.2.0 with CUDA support..." && \
+RUN echo "Building OpenCV 4.2.0 with CUDA support (no contrib)..." && \
     make -j8
 
 # Install OpenCV
@@ -115,7 +105,7 @@ RUN pkg-config --modversion opencv4 && \
 
 # Clean up build files to reduce image size
 RUN cd /root && \
-    rm -rf opencv-4.2.0 opencv_contrib-4.2.0
+    rm -rf opencv-4.2.0
 
 WORKDIR /root
 
