@@ -43,63 +43,58 @@ nvidia-smi
 
 ---
 
-## Step 2: Build OpenCV 4.2.0 with CUDA Support ✓ (GPU test passed)
+## Step 2: Build OpenCV 4.2.0 (NO CUDA) ✓ COMPLETED
 
-This will take **20-40 minutes** depending on your CPU. OpenCV is being compiled with CUDA support for your RTX A6000 GPUs (compute capability 8.6).
-
-### 2.1 Build the OpenCV image:
+SwarmMap has its own CUDA implementation in `.cu` files, so OpenCV doesn't need CUDA support.
 
 ```powershell
 cd "C:\Users\sj99\Desktop\SwarmMap\docker"
-docker build -f Dockerfile.opencv -t swarmmap:opencv .
+docker build -f Dockerfile.opencv_nocuda -t swarmmap:opencv .
+```
+
+✓ **Build completed successfully** (10-15 minutes)
+
+---
+
+## Step 3: Build Pangolin v0.5 for Visualization
+
+Pangolin provides the map viewer and GUI for SwarmMap.
+
+### 3.1 Build Pangolin:
+
+```powershell
+docker build -f Dockerfile.pangolin -t swarmmap:pangolin .
 ```
 
 **What's happening**:
-- Installing all OpenCV dependencies
-- Downloading OpenCV 4.2.0 and opencv_contrib
-- Compiling with CUDA support (compute capability 8.6 for RTX A6000)
-- Using 8 parallel jobs for faster compilation
+- Installing OpenGL and visualization dependencies
+- Cloning Pangolin v0.5 (specific version required by SwarmMap)
+- Building with 8 parallel jobs
 
-### 2.2 Test OpenCV CUDA support:
+**Expected time**: 3-5 minutes
 
-Once the build completes, start a container:
+**Report back**: Did the build complete successfully?
+
+---
+
+## Step 4: Install Remaining Dependencies
+
+Install Eigen3, Boost (≥1.70.0), and spdlog.
+
+### 4.1 Build dependencies image:
 
 ```powershell
-docker run --rm --gpus all -it -v "${PWD}:/workspace" swarmmap:opencv
+docker build -f Dockerfile.dependencies -t swarmmap:deps .
 ```
 
-Inside the container, compile and run the test program:
+**What's happening**:
+- Installing Eigen3 3.3.7 (linear algebra)
+- Installing Boost 1.71.0 (serialization & networking)
+- Installing spdlog (logging)
 
-```bash
-cd /workspace
-g++ -o test_opencv_cuda test_opencv_cuda.cpp `pkg-config --cflags --libs opencv4` -std=c++11
-./test_opencv_cuda
-```
+**Expected time**: 1-2 minutes
 
-**Expected output**:
-```
-OpenCV Version: 4.2.0
-OpenCV CUDA Device Count: 2
-CUDA is available!
-
-GPU 0 Information:
-  Name: NVIDIA RTX A6000
-  Compute Capability: 8.6
-  Total Memory: 49140 MB
-
-GPU 1 Information:
-  Name: NVIDIA RTX A6000
-  Compute Capability: 8.6
-  Total Memory: 49140 MB
-
-✓ OpenCV CUDA support is working correctly!
-```
-
-**Report back**:
-1. Did the Docker build complete successfully?
-2. Does the test program show CUDA is available with both GPUs?
-
-If yes, we'll move to Step 3: Building Pangolin for visualization.
+**Report back**: Did the build complete successfully?
 
 ---
 

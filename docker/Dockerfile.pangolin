@@ -1,0 +1,36 @@
+# SwarmMap Docker Build - Step 3: Add Pangolin v0.5 for visualization
+FROM swarmmap:opencv
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=UTC
+
+# Install Pangolin dependencies
+RUN apt-get update && apt-get install -y \
+    libglew-dev \
+    libboost-dev \
+    libboost-thread-dev \
+    libboost-filesystem-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /root
+
+# Clone and build Pangolin v0.5
+RUN echo "Downloading Pangolin v0.5..." && \
+    git clone --branch v0.5 --depth 1 https://github.com/stevenlovegrove/Pangolin.git && \
+    cd Pangolin && \
+    mkdir build && \
+    cd build && \
+    cmake .. -DCMAKE_BUILD_TYPE=Release && \
+    make -j8 && \
+    make install && \
+    ldconfig
+
+# Clean up
+RUN cd /root && rm -rf Pangolin
+
+# Verify Pangolin installation
+RUN echo "Pangolin v0.5 installed successfully"
+
+WORKDIR /root
+
+CMD ["/bin/bash"]

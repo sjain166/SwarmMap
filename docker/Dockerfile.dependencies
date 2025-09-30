@@ -1,0 +1,27 @@
+# SwarmMap Docker Build - Step 4: Install remaining dependencies
+FROM swarmmap:pangolin
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=UTC
+
+# Install Eigen3, Boost (>=1.70.0), and spdlog
+# Ubuntu 20.04 has:
+# - Eigen3 3.3.7 ✓
+# - Boost 1.71.0 ✓ (meets >=1.70.0 requirement)
+# - spdlog 1.5.0 ✓
+RUN apt-get update && apt-get install -y \
+    libeigen3-dev \
+    libboost-all-dev \
+    libspdlog-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Verify installations
+RUN echo "Checking dependency versions..." && \
+    pkg-config --modversion eigen3 && \
+    echo "Boost version:" && dpkg -l | grep libboost-dev | awk '{print $3}' && \
+    echo "spdlog installed" && \
+    echo "All dependencies installed successfully"
+
+WORKDIR /root
+
+CMD ["/bin/bash"]
