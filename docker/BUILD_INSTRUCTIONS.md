@@ -43,9 +43,63 @@ nvidia-smi
 
 ---
 
-## Step 2: Install Build Dependencies (Execute this after Step 1 succeeds)
+## Step 2: Build OpenCV 4.2.0 with CUDA Support ✓ (GPU test passed)
 
-Once you confirm Step 1 works, I'll provide the next Dockerfile for installing CMake, build tools, and other dependencies.
+This will take **20-40 minutes** depending on your CPU. OpenCV is being compiled with CUDA support for your RTX A6000 GPUs (compute capability 8.6).
+
+### 2.1 Build the OpenCV image:
+
+```powershell
+cd "C:\Users\sj99\Desktop\SwarmMap\docker"
+docker build -f Dockerfile.opencv -t swarmmap:opencv .
+```
+
+**What's happening**:
+- Installing all OpenCV dependencies
+- Downloading OpenCV 4.2.0 and opencv_contrib
+- Compiling with CUDA support (compute capability 8.6 for RTX A6000)
+- Using 8 parallel jobs for faster compilation
+
+### 2.2 Test OpenCV CUDA support:
+
+Once the build completes, start a container:
+
+```powershell
+docker run --rm --gpus all -it -v "${PWD}:/workspace" swarmmap:opencv
+```
+
+Inside the container, compile and run the test program:
+
+```bash
+cd /workspace
+g++ -o test_opencv_cuda test_opencv_cuda.cpp `pkg-config --cflags --libs opencv4` -std=c++11
+./test_opencv_cuda
+```
+
+**Expected output**:
+```
+OpenCV Version: 4.2.0
+OpenCV CUDA Device Count: 2
+CUDA is available!
+
+GPU 0 Information:
+  Name: NVIDIA RTX A6000
+  Compute Capability: 8.6
+  Total Memory: 49140 MB
+
+GPU 1 Information:
+  Name: NVIDIA RTX A6000
+  Compute Capability: 8.6
+  Total Memory: 49140 MB
+
+✓ OpenCV CUDA support is working correctly!
+```
+
+**Report back**:
+1. Did the Docker build complete successfully?
+2. Does the test program show CUDA is available with both GPUs?
+
+If yes, we'll move to Step 3: Building Pangolin for visualization.
 
 ---
 
@@ -53,3 +107,4 @@ Once you confirm Step 1 works, I'll provide the next Dockerfile for installing C
 - We're using CUDA 11.8 (compatible with your CUDA 12.6 driver and RTX A6000 Ampere architecture)
 - Each step will be tested before moving to the next
 - The container will be interactive so you can verify each build step
+- OpenCV is being built with GTK for GUI support and OpenGL enabled
