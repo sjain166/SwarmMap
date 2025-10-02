@@ -14,13 +14,15 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /root
 
-# Clone and build Pangolin v0.5
+# Clone and build Pangolin v0.5 (without FFMPEG to avoid compatibility issues)
 RUN echo "Downloading Pangolin v0.5..." && \
     git clone --branch v0.5 --depth 1 https://github.com/stevenlovegrove/Pangolin.git && \
     cd Pangolin && \
     mkdir build && \
     cd build && \
-    cmake .. -DCMAKE_BUILD_TYPE=Release && \
+    cmake .. \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DBUILD_PANGOLIN_FFMPEG=OFF && \
     make -j8 && \
     make install && \
     ldconfig
