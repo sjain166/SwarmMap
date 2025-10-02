@@ -55,7 +55,8 @@ RUN apt-get update && apt-get install -y \
     protobuf-compiler \
     && rm -rf /var/lib/apt/lists/*
 
-# Build OpenCV 3.4.6 with CUDA 11.8 (exact configuration from working build, updated CUDA arch for RTX A6000)
+# Build OpenCV 3.4.6 WITHOUT CUDA (CUDA 11.8 lacks nppicom library required by OpenCV 3.4.6)
+# SwarmMap has its own CUDA kernels in .cu files, so OpenCV CUDA is not required
 RUN wget -O opencv.zip https://github.com/opencv/opencv/archive/3.4.6.zip \
     && unzip opencv.zip \
     && cd opencv-3.4.6 \
@@ -66,19 +67,14 @@ RUN wget -O opencv.zip https://github.com/opencv/opencv/archive/3.4.6.zip \
              -D BUILD_opencv_python3=OFF \
              -D BUILD_PYTHON_SUPPORT=OFF \
              -D OPENCV_ENABLE_NONFREE=ON \
-             -D WITH_CUDA=ON \
-             -D WITH_CUDNN=OFF \
-             -D CUDA_ARCH_BIN="8.6" \
-             -D CUDA_ARCH_PTX="" \
-             -D WITH_CUBLAS=ON \
-             -D ENABLE_FAST_MATH=ON \
-             -D CUDA_FAST_MATH=ON \
+             -D WITH_CUDA=OFF \
+             -D WITH_TBB=ON \
+             -D WITH_OPENGL=ON \
              -D BUILD_EXAMPLES=OFF \
              -D BUILD_TESTS=OFF \
              -D BUILD_PERF_TESTS=OFF \
              -D WITH_QT=OFF \
              -D WITH_GTK=ON \
-             -D WITH_OPENGL=OFF \
              -D WITH_OPENCL=OFF .. \
     && make -j4 \
     && make install \
