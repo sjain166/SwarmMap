@@ -1,7 +1,8 @@
-# SwarmMap Complete Build - Based on Working Configuration
-# Only change: CUDA 10.2 -> 11.8 for RTX A6000 support
-# Original working base: fangruo/cuda:10.2-cudnn7-devel-ubuntu18.04
-FROM nvidia/cuda:11.8.0-devel-ubuntu18.04
+# SwarmMap Complete Build - CUDA 10.2 for Compilation Test
+# WARNING: Will compile successfully but WILL FAIL at runtime on RTX A6000
+# Purpose: Demonstrate the runtime incompatibility empirically
+# Based on working configuration from reference Dockerfile
+FROM nvidia/cuda:10.2-devel-ubuntu18.04
 
 # Install system dependencies (no ROS)
 RUN apt-get update && apt-get install -y \
@@ -55,8 +56,7 @@ RUN apt-get update && apt-get install -y \
     protobuf-compiler \
     && rm -rf /var/lib/apt/lists/*
 
-# Build OpenCV 3.4.6 WITHOUT CUDA (CUDA 11.8 lacks nppicom library required by OpenCV 3.4.6)
-# SwarmMap has its own CUDA kernels in .cu files, so OpenCV CUDA is not required
+# Build OpenCV 3.4.6 WITH CUDA 10.2 (works because CUDA 10.2 has nppicom library)
 RUN wget -O opencv.zip https://github.com/opencv/opencv/archive/3.4.6.zip \
     && unzip opencv.zip \
     && cd opencv-3.4.6 \
@@ -67,14 +67,19 @@ RUN wget -O opencv.zip https://github.com/opencv/opencv/archive/3.4.6.zip \
              -D BUILD_opencv_python3=OFF \
              -D BUILD_PYTHON_SUPPORT=OFF \
              -D OPENCV_ENABLE_NONFREE=ON \
-             -D WITH_CUDA=OFF \
-             -D WITH_TBB=ON \
-             -D WITH_OPENGL=ON \
+             -D WITH_CUDA=ON \
+             -D WITH_CUDNN=OFF \
+             -D CUDA_ARCH_BIN="6.0,6.1,7.0,7.5" \
+             -D CUDA_ARCH_PTX="" \
+             -D WITH_CUBLAS=ON \
+             -D ENABLE_FAST_MATH=ON \
+             -D CUDA_FAST_MATH=ON \
              -D BUILD_EXAMPLES=OFF \
              -D BUILD_TESTS=OFF \
              -D BUILD_PERF_TESTS=OFF \
              -D WITH_QT=OFF \
              -D WITH_GTK=ON \
+             -D WITH_OPENGL=OFF \
              -D WITH_OPENCL=OFF .. \
     && make -j4 \
     && make install \
