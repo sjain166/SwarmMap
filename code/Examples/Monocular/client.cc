@@ -254,7 +254,7 @@ int main(int argc, char **argv) {
     ORB_SLAM2::System *SLAM = &system;
 
     string host = file["HOST"];
-    unsigned int port = stoi(file["PORT"]);
+    unsigned int port = (int)file["PORT"];
 
     RegisterRemote(SLAM, host, port);
 

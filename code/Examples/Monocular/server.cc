@@ -166,7 +166,7 @@ int main(int argc, char **argv) {
     globalMediator = new ORB_SLAM2::AgentMediator(settingsFile, pVoc2, true, use_viewer, use_map_viewer);
 
 //    string host = file["HOST"];
-    unsigned int port = stoi(file["PORT"]);
+    unsigned int port = (int)file["PORT"];
 
     // start dispatch service
     tDispatch = new thread(SetupDispatchService, port);

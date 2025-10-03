@@ -7,4 +7,4 @@ TIMES: ['/home/slam/edge-slam-new/src/Examples/Monocular/EuRoC_TimeStamps/MH01.t
 
 # ID dispatch address and port
 HOST: '0.0.0.0'
-PORT: 10088
+PORT: "10088"
