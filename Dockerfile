@@ -2,7 +2,7 @@
 # WARNING: Will compile successfully but WILL FAIL at runtime on RTX A6000
 # Purpose: Demonstrate the runtime incompatibility empirically
 # Based on working configuration from reference Dockerfile
-FROM nvidia/cuda:10.2-devel-ubuntu18.04
+FROM fangruo/cuda:10.2-cudnn7-devel-ubuntu18.04
 
 # Install system dependencies (no ROS)
 RUN apt-get update && apt-get install -y \
