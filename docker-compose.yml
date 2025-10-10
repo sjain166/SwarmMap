@@ -33,6 +33,7 @@ services:
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
       - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+      - LD_LIBRARY_PATH=/opt/SwarmMap/lib:/opt/SwarmMap/code/Thirdparty/DBoW2/lib:/opt/SwarmMap/code/Thirdparty/g2o/lib:/usr/local/lib:${LD_LIBRARY_PATH}
 
   swarm-client-1:
     image: swarmmap:cuda10.2_with_example
@@ -68,6 +69,7 @@ services:
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
       - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+      - LD_LIBRARY_PATH=/opt/SwarmMap/lib:/opt/SwarmMap/code/Thirdparty/DBoW2/lib:/opt/SwarmMap/code/Thirdparty/g2o/lib:/usr/local/lib:${LD_LIBRARY_PATH}
 
   # Uncomment for additional clients
   # swarm-client-2:
