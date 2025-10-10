@@ -17,12 +17,15 @@ services:
     volumes:
       # Mount EuRoC dataset from Windows
       - C:\Users\sj99\Desktop\EuRoC:/dataset
-      # Mount startup script
-      - ./docker/start-server.sh:/start-server.sh:ro
       # Mount output directory for maps and trajectories
       - ./output:/opt/SwarmMap/output
     working_dir: /opt/SwarmMap
-    command: ["/bin/bash", "/start-server.sh"]
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        export DISPLAY=:0
+        export LD_LIBRARY_PATH=/opt/SwarmMap/lib:/opt/SwarmMap/code/Thirdparty/DBoW2/lib:/opt/SwarmMap/code/Thirdparty/g2o/lib:/usr/local/lib:/usr/local/nvidia/lib:/usr/local/nvidia/lib64
+        ./bin/swarm_server -v code/Vocabulary/ORBvoc.bin -d config/test_mh01.yaml -l info --viewer 0 --mapviewer 0
     ports:
       - "10088:10088"
     environment:
@@ -48,12 +51,16 @@ services:
       - C:\Users\sj99\Desktop\EuRoC:/dataset
       # Mount client config with HOST: 'swarm-server'
       - ./docker/client.yaml:/opt/SwarmMap/config/client.yaml:ro
-      # Mount startup script
-      - ./docker/start-client.sh:/start-client.sh:ro
       # Mount output directory
       - ./output:/opt/SwarmMap/output
     working_dir: /opt/SwarmMap
-    command: ["/bin/bash", "/start-client.sh"]
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        export DISPLAY=:0
+        export LD_LIBRARY_PATH=/opt/SwarmMap/lib:/opt/SwarmMap/code/Thirdparty/DBoW2/lib:/opt/SwarmMap/code/Thirdparty/g2o/lib:/usr/local/lib:/usr/local/nvidia/lib:/usr/local/nvidia/lib64
+        sleep 3
+        ./bin/swarm_client -v code/Vocabulary/ORBvoc.bin -d config/client.yaml -l info --viewer 0 --mapviewer 0
     depends_on:
       - swarm-server
     environment:
