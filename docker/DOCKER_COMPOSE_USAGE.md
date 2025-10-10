@@ -20,7 +20,62 @@ This guide explains how to run SwarmMap server and client in separate Docker con
 1. Docker with NVIDIA GPU support (nvidia-docker2)
 2. Docker Compose
 3. Existing SwarmMap image: `swarmmap:cuda10.2_with_example`
-4. EuRoC dataset at: `C:\Users\sj99\Desktop\EuRoC` (Windows)
+4. EuRoC dataset downloaded locally
+
+## ⚠️ IMPORTANT: Configure Paths Before First Use
+
+**You MUST update the dataset path in `docker-compose.yml` to match your system!**
+
+### Step 1: Locate Your Dataset
+Find where you downloaded the EuRoC dataset on your machine. For example:
+- Windows: `C:\Users\YourName\Desktop\EuRoC`
+- Linux/Mac: `/home/username/datasets/EuRoC`
+
+### Step 2: Update docker-compose.yml
+Open `docker-compose.yml` and find these lines in **both** the `swarm-server` and `swarm-client-1` sections:
+
+```yaml
+volumes:
+  # Mount EuRoC dataset from Windows
+  - C:\Users\sj99\Desktop\EuRoC:/dataset    # ← CHANGE THIS LINE
+```
+
+**Replace** `C:\Users\sj99\Desktop\EuRoC` with your actual dataset path.
+
+**Example for Windows:**
+```yaml
+volumes:
+  - C:\Users\alice\Documents\datasets\EuRoC:/dataset
+```
+
+**Example for Linux/Mac:**
+```yaml
+volumes:
+  - /home/alice/datasets/EuRoC:/dataset
+```
+
+### Step 3: Verify Output Directory (Optional)
+If you want SwarmMap results to be saved to your host machine, the `./output` directory mount will create an `output` folder in the same directory as `docker-compose.yml`. No changes needed unless you want a different location.
+
+```yaml
+volumes:
+  - ./output:/opt/SwarmMap/output    # Results saved to ./output/
+```
+
+To use a different output location:
+```yaml
+volumes:
+  - /path/to/your/output:/opt/SwarmMap/output
+```
+
+### Step 4: Verify Image Name (Optional)
+If you tagged your Docker image with a different name, update the `image:` field:
+
+```yaml
+services:
+  swarm-server:
+    image: swarmmap:cuda10.2_with_example    # ← Change if different
+```
 
 ## Configuration
 
