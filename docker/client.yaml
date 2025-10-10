@@ -1,0 +1,13 @@
+%YAML:1.0
+
+# SwarmMap Client Configuration for Docker
+# Same as test_mh01.yaml but with HOST pointing to server container
+
+TYPE: 'euroc'
+SETTING: 'code/Examples/Monocular/EuRoC.yaml'
+IMAGES: ['/dataset/MH_01_easy/mav0/cam0/data']
+TIMES: ['code/Examples/Monocular/EuRoC_TimeStamps/MH01.txt']
+
+# Connect to server container via Docker network DNS
+HOST: 'swarm-server'
+PORT: "10088"
