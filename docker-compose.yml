@@ -17,8 +17,13 @@ services:
     volumes:
       # Mount EuRoC dataset from Windows
       - C:\Users\sj99\Desktop\EuRoC:/dataset
-      # Mount SwarmMap code directory (for vocabulary and config)
-      - ./code:/opt/SwarmMap/code:ro
+      # Mount only vocabulary file (don't overwrite compiled libraries!)
+      - ./code/Vocabulary:/opt/SwarmMap/code/Vocabulary:ro
+      # Mount only timestamp files
+      - ./code/Examples/Monocular/EuRoC_TimeStamps:/opt/SwarmMap/code/Examples/Monocular/EuRoC_TimeStamps:ro
+      # Mount camera calibration file
+      - ./code/Examples/Monocular/EuRoC.yaml:/opt/SwarmMap/code/Examples/Monocular/EuRoC.yaml:ro
+      # Mount config directory
       - ./config:/opt/SwarmMap/config:ro
       # Mount startup script
       - ./docker/start-server.sh:/start-server.sh:ro
@@ -49,8 +54,12 @@ services:
     volumes:
       # Mount EuRoC dataset from Windows
       - C:\Users\sj99\Desktop\EuRoC:/dataset
-      # Mount SwarmMap code directory (for vocabulary)
-      - ./code:/opt/SwarmMap/code:ro
+      # Mount only vocabulary file (don't overwrite compiled libraries!)
+      - ./code/Vocabulary:/opt/SwarmMap/code/Vocabulary:ro
+      # Mount only timestamp files
+      - ./code/Examples/Monocular/EuRoC_TimeStamps:/opt/SwarmMap/code/Examples/Monocular/EuRoC_TimeStamps:ro
+      # Mount camera calibration file
+      - ./code/Examples/Monocular/EuRoC.yaml:/opt/SwarmMap/code/Examples/Monocular/EuRoC.yaml:ro
       # Mount client config with HOST: 'swarm-server'
       - ./docker/client.yaml:/opt/SwarmMap/config/client.yaml:ro
       # Mount startup script
