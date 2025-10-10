@@ -26,6 +26,7 @@ services:
     command: >
       /bin/bash -c "
       export DISPLAY=:0 &&
+      export LD_LIBRARY_PATH=/opt/SwarmMap/lib:/opt/SwarmMap/code/Thirdparty/DBoW2/lib:/opt/SwarmMap/code/Thirdparty/g2o/lib:/usr/local/lib:/usr/local/nvidia/lib:/usr/local/nvidia/lib64 &&
       ./bin/swarm_server -v code/Vocabulary/ORBvoc.bin -d config/test_mh01.yaml -l info --viewer 0 --mapviewer 0
       "
     ports:
@@ -61,6 +62,7 @@ services:
     command: >
       /bin/bash -c "
       export DISPLAY=:0 &&
+      export LD_LIBRARY_PATH=/opt/SwarmMap/lib:/opt/SwarmMap/code/Thirdparty/DBoW2/lib:/opt/SwarmMap/code/Thirdparty/g2o/lib:/usr/local/lib:/usr/local/nvidia/lib:/usr/local/nvidia/lib64 &&
       sleep 3 &&
       ./bin/swarm_client -v code/Vocabulary/ORBvoc.bin -d config/client.yaml -l info --viewer 0 --mapviewer 0
       "
