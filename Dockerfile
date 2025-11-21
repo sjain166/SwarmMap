@@ -39,11 +39,13 @@ RUN apt-get update && apt-get install -y \
 # Create working directory
 WORKDIR /opt
 
-# Build Pangolin v0.5 (exact version from SwarmMap docs)
-RUN git clone --depth 1 --branch v0.5 https://github.com/stevenlovegrove/Pangolin.git \
+# Build Pangolin v0.6 (v0.5 has warnings that GCC 9+ treats as errors)
+# Using v0.6 for better compatibility with Ubuntu 20.04 / GCC 9+
+RUN git clone --depth 1 --branch v0.6 https://github.com/stevenlovegrove/Pangolin.git \
     && cd Pangolin \
     && mkdir build && cd build \
     && cmake .. -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_CXX_FLAGS="-Wno-error=maybe-uninitialized -Wno-error=deprecated-declarations" \
     && make -j$(nproc) \
     && make install \
     && ldconfig
