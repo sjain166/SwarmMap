@@ -217,10 +217,20 @@ log_success "CMake configuration complete"
 log_step "Step 6: Verifying Configuration"
 
 log_info "Checking CUDA configuration..."
-if grep -q "CUDA.*YES" CMakeCache.txt; then
+if grep -q "WITH_CUDA:BOOL=ON" CMakeCache.txt; then
     log_success "CUDA support enabled ✅"
+
+    # Check CUDA architecture
+    CUDA_ARCH=$(grep "CUDA_ARCH_BIN:STRING" CMakeCache.txt | cut -d'=' -f2)
+    log_info "CUDA Architecture: ${CUDA_ARCH}"
+
+    # Check cuDNN
+    if grep -q "WITH_CUDNN:BOOL=ON" CMakeCache.txt; then
+        log_success "cuDNN support enabled ✅"
+    fi
 else
     log_error "CUDA support NOT enabled!"
+    log_error "Check CMake configuration above for errors"
     exit 1
 fi
 
@@ -232,10 +242,16 @@ else
 fi
 
 log_info "Checking for CUDA modules..."
-if [ -d "../modules/cudafilters" ] || [ -d "${BUILD_DIR}/opencv_contrib/modules/cudafilters" ]; then
-    log_success "CUDA modules (cudafilters, etc.) will be built ✅"
+if grep -q "BUILD_opencv_cudafilters:BOOL=ON" CMakeCache.txt && \
+   grep -q "BUILD_opencv_cudafeatures2d:BOOL=ON" CMakeCache.txt; then
+    log_success "CUDA modules (cudafilters, cudafeatures2d, etc.) will be built ✅"
+
+    # Count how many CUDA modules are enabled
+    CUDA_MODULES=$(grep "BUILD_opencv_cuda.*:BOOL=ON" CMakeCache.txt | wc -l)
+    log_info "Total CUDA modules enabled: ${CUDA_MODULES}"
 else
-    log_error "CUDA modules not found!"
+    log_error "CUDA modules not properly configured!"
+    log_error "Check opencv_contrib path"
     exit 1
 fi
 
