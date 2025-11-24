@@ -136,16 +136,18 @@ RUN cd /opt/SwarmMap/code/Thirdparty/DBoW2 \
 # Build SwarmMap third-party dependencies
 WORKDIR /opt/SwarmMap/code
 
-# Build DBoW2
+# Build DBoW2 (explicitly set OpenCV path for OpenCV 4)
 RUN cd Thirdparty/DBoW2 \
     && mkdir build && cd build \
     && cmake .. -DCMAKE_BUILD_TYPE=Release \
+        -DOpenCV_DIR=/usr/local/lib/cmake/opencv4 \
     && make -j$(nproc)
 
-# Build g2o
+# Build g2o (explicitly set OpenCV path for OpenCV 4)
 RUN cd Thirdparty/g2o \
     && mkdir build && cd build \
     && cmake .. -DCMAKE_BUILD_TYPE=Release \
+        -DOpenCV_DIR=/usr/local/lib/cmake/opencv4 \
     && make -j$(nproc)
 
 # Verify CUDA samples installation
@@ -162,6 +164,7 @@ RUN mkdir build && cd build \
         -DCUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda \
         -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
         -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3 \
+        -DOpenCV_DIR=/usr/local/lib/cmake/opencv4 \
         -DCUDA_ARCH_BIN="7.2" \
         -DCMAKE_CUDA_ARCHITECTURES="72" \
     && echo "=== Building SwarmMap Core ===" \
