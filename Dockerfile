@@ -126,6 +126,13 @@ RUN git clone --depth 1 --branch v11.8 https://github.com/NVIDIA/cuda-samples.gi
 # Copy SwarmMap source code
 COPY . /opt/SwarmMap
 
+# Patch DBoW2 for OpenCV 4.x compatibility (OpenCV 4 uses opencv2/core.hpp instead of opencv2/core/core.hpp)
+RUN cd /opt/SwarmMap/code/Thirdparty/DBoW2 \
+    && sed -i 's|opencv2/core/core.hpp|opencv2/core.hpp|g' DBoW2/FORB.h \
+    && sed -i 's|opencv2/core/core.hpp|opencv2/core.hpp|g' DBoW2/TemplatedVocabulary.h \
+    && sed -i 's|opencv2/highgui/highgui.hpp|opencv2/highgui.hpp|g' $(find . -name "*.h" -o -name "*.cpp") \
+    && sed -i 's|opencv2/features2d/features2d.hpp|opencv2/features2d.hpp|g' $(find . -name "*.h" -o -name "*.cpp")
+
 # Build SwarmMap third-party dependencies
 WORKDIR /opt/SwarmMap/code
 
