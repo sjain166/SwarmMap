@@ -53,6 +53,12 @@ BUILD_DIR="${SWARMMAP_ROOT}/build_native"
 INSTALL_PREFIX="/usr/local"
 NUM_CORES=$(nproc)
 
+# Redirect compiler temp directory to avoid filling up system drive
+# GCC uses TMPDIR for temporary files during compilation
+export TMPDIR="${BUILD_DIR}/tmp"
+mkdir -p "${TMPDIR}"
+log_info "Using temp directory: ${TMPDIR}"
+
 log_info "SwarmMap Root: ${SWARMMAP_ROOT}"
 log_info "Build Directory: ${BUILD_DIR}"
 log_info "CPU Cores: ${NUM_CORES}"
