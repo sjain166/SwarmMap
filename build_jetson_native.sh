@@ -102,11 +102,31 @@ log_step "Step 2: Checking Existing Dependencies"
 log_info "Checking OpenCV..."
 OPENCV_FOUND=false
 OPENCV_CUDA_ENABLED=false
+OPENCV_CMAKE_DIR=""
 
-if pkg-config --exists opencv4; then
-    OPENCV_VERSION=$(pkg-config --modversion opencv4)
-    log_success "OpenCV ${OPENCV_VERSION} found"
+# Check for NVIDIA's OpenCV first (JetPack includes this with CUDA)
+if dpkg -l | grep -q nvidia-opencv-dev; then
+    log_success "NVIDIA OpenCV (with CUDA) package found ✅"
     OPENCV_FOUND=true
+    OPENCV_CUDA_ENABLED=true
+
+    # Find NVIDIA's OpenCV cmake files
+    NVIDIA_OPENCV_CMAKE=$(dpkg -L nvidia-opencv-dev | grep "OpenCVConfig.cmake" | head -1)
+    if [ -n "$NVIDIA_OPENCV_CMAKE" ]; then
+        OPENCV_CMAKE_DIR=$(dirname "$NVIDIA_OPENCV_CMAKE")
+        log_success "NVIDIA OpenCV CMake config: ${OPENCV_CMAKE_DIR}"
+    fi
+
+    # Get version
+    if [ -f "/usr/include/opencv4/opencv2/core/version.hpp" ]; then
+        OPENCV_VERSION=$(grep "CV_VERSION_MAJOR" /usr/include/opencv4/opencv2/core/version.hpp | awk '{print $3}')
+        log_info "OpenCV version: ${OPENCV_VERSION}.x"
+    fi
+elif pkg-config --exists opencv4; then
+    OPENCV_VERSION=$(pkg-config --modversion opencv4)
+    log_warning "Found standard OpenCV ${OPENCV_VERSION} (checking CUDA support...)"
+    OPENCV_FOUND=true
+    OPENCV_CMAKE_DIR="/usr/lib/aarch64-linux-gnu/cmake/opencv4"
 
     # Check CUDA support
     if python3 -c "import cv2; print(cv2.cuda.getCudaEnabledDeviceCount())" 2>/dev/null | grep -q "^[1-9]"; then
@@ -114,17 +134,15 @@ if pkg-config --exists opencv4; then
         OPENCV_CUDA_ENABLED=true
     else
         log_warning "OpenCV found but CUDA support is NOT enabled ⚠️"
-        log_warning "SwarmMap requires OpenCV with CUDA for best performance"
-        log_warning "You may need to build OpenCV from source with CUDA enabled"
     fi
 elif pkg-config --exists opencv; then
     OPENCV_VERSION=$(pkg-config --modversion opencv)
     log_warning "Found OpenCV ${OPENCV_VERSION} (v3.x), but SwarmMap prefers OpenCV 4.x"
     OPENCV_FOUND=true
+    OPENCV_CMAKE_DIR="/usr/lib/aarch64-linux-gnu/cmake/opencv"
 else
     log_error "OpenCV not found!"
-    log_error "JetPack should include OpenCV. Please check your installation."
-    log_error "You may need to install: sudo apt install libopencv-dev python3-opencv"
+    log_error "Please install: sudo apt install nvidia-opencv-dev"
 fi
 
 # Check if OpenCV is good enough to proceed
@@ -333,9 +351,16 @@ log_info "Building DBoW2..."
 rm -rf build
 mkdir build && cd build
 
-cmake .. \
-    -DCMAKE_BUILD_TYPE=Release \
-    -DOpenCV_DIR=/usr/lib/aarch64-linux-gnu/cmake/opencv4
+# Use NVIDIA's OpenCV if available
+if [ -n "$OPENCV_CMAKE_DIR" ]; then
+    log_info "Using OpenCV from: ${OPENCV_CMAKE_DIR}"
+    cmake .. \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DOpenCV_DIR="${OPENCV_CMAKE_DIR}"
+else
+    cmake .. \
+        -DCMAKE_BUILD_TYPE=Release
+fi
 
 make -j${NUM_CORES}
 
@@ -376,15 +401,24 @@ rm -rf build
 mkdir build && cd build
 
 log_info "Configuring SwarmMap..."
-cmake .. \
-    -DCMAKE_BUILD_TYPE=Release \
-    -DCUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda \
-    -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
-    -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3 \
-    -DOpenCV_DIR=/usr/lib/aarch64-linux-gnu/cmake/opencv4 \
-    -DCUDA_ARCH_BIN="7.2" \
-    -DCMAKE_CUDA_ARCHITECTURES="72" \
+
+# Build cmake command with OpenCV path if available
+CMAKE_ARGS=(
+    -DCMAKE_BUILD_TYPE=Release
+    -DCUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda
+    -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+    -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3
+    -DCUDA_ARCH_BIN="7.2"
+    -DCMAKE_CUDA_ARCHITECTURES="72"
     -DCUDA_NVCC_FLAGS="-gencode arch=compute_72,code=sm_72 -gencode arch=compute_72,code=compute_72"
+)
+
+if [ -n "$OPENCV_CMAKE_DIR" ]; then
+    log_info "Using OpenCV from: ${OPENCV_CMAKE_DIR}"
+    CMAKE_ARGS+=(-DOpenCV_DIR="${OPENCV_CMAKE_DIR}")
+fi
+
+cmake .. "${CMAKE_ARGS[@]}"
 
 log_info "Building SwarmMap with ${NUM_CORES} cores..."
 make -j${NUM_CORES}
